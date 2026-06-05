@@ -32,7 +32,8 @@ export type GameId =
   | 'categories'
   | 'quiz'
   | 'colors'
-  | 'numbers';
+  | 'numbers'
+  | 'whoami';
 
 export interface GameMeta {
   id: GameId;

@@ -527,3 +527,142 @@ img, svg { max-width: 100%; }
 .psb-avatar { font-size: 1.8rem; }
 .psb-name   { font-size: .85rem; font-weight: 800; }
 .psb-pts    { font-size: .75rem; color: var(--text-muted); }
+
+/* ======================================================
+   WER BIN ICH? — Multiplayer game styles
+   ====================================================== */
+.wai-main { max-width: 560px; }
+
+/* Lobby */
+.wai-lobby { text-align: center; padding: 8px 0 20px; }
+.wai-big-emoji { font-size: 5rem; margin-bottom: 12px; animation: bounceIn .6s ease; }
+.wai-title     { font-size: clamp(1.8rem, 7vw, 2.6rem); font-weight: 900; margin-bottom: 6px; }
+.wai-subtitle  { font-size: 1rem; color: var(--text-muted); font-weight: 700; margin-bottom: 20px; }
+.wai-rules     { background: var(--surface); border-radius: var(--r-lg); padding: 18px 20px; margin-bottom: 24px; text-align: left; }
+.wai-rule      { display: flex; gap: 12px; font-size: .95rem; font-weight: 600; padding: 6px 0; }
+.wai-rule span { background: var(--purple); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 900; flex-shrink: 0; }
+.wai-lobby-actions { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.wai-big-btn   { width: 100%; max-width: 320px; font-size: 1.2rem; }
+.wai-or        { font-weight: 800; color: var(--text-muted); font-size: .9rem; }
+.wai-join-row  { display: flex; gap: 10px; width: 100%; max-width: 320px; }
+.wai-code-input {
+  flex: 1; padding: 14px 16px; border: 3px solid var(--border); border-radius: var(--r-md);
+  font-size: 1.3rem; font-weight: 900; letter-spacing: 4px; text-align: center;
+  background: var(--surface2); color: var(--text); outline: none; transition: border-color .2s;
+  text-transform: uppercase;
+}
+.wai-code-input:focus { border-color: var(--purple); }
+
+/* Waiting screen */
+.wai-waiting-screen { text-align: center; padding: 32px 0; }
+.wai-pulse { font-size: 4rem; animation: pulse 1.5s ease infinite; margin-bottom: 16px; }
+.wai-waiting-screen h2 { font-size: 1.5rem; font-weight: 900; margin-bottom: 10px; }
+.wai-waiting-screen p  { color: var(--text-muted); font-weight: 700; margin-bottom: 16px; }
+.wai-code-display      { display: flex; gap: 8px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
+.wai-code-char {
+  width: 52px; height: 64px; background: var(--purple); color: #fff;
+  border-radius: var(--r-md); font-size: 1.8rem; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 0 #5b21b6;
+}
+.wai-hint { font-size: .85rem; color: var(--text-muted); margin-bottom: 20px; }
+
+/* Error */
+.wai-error {
+  background: var(--red-l); border: 2px solid var(--red); border-radius: var(--r-sm);
+  padding: 12px 16px; margin-bottom: 16px; font-weight: 700; font-size: .9rem; color: var(--red);
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+/* Fruit bar */
+.wai-fruits-bar {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.wai-fruit-slot {
+  flex: 1; background: var(--surface); border-radius: var(--r-md); padding: 14px 10px;
+  text-align: center; box-shadow: var(--shadow-sm); border: 2px solid var(--border);
+}
+.wai-me   { background: linear-gradient(135deg, #ede9fe, #f3e8ff); border-color: var(--purple); }
+.wai-fs-label { font-size: .72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+.wai-fs-emoji { font-size: clamp(2rem, 8vw, 3rem); line-height: 1; margin-bottom: 4px; }
+.wai-fs-name  { font-size: .85rem; font-weight: 800; }
+.wai-fs-hidden { color: var(--text-muted); }
+.wai-fruits-vs { font-size: 1rem; font-weight: 900; color: var(--text-muted); flex-shrink: 0; }
+
+/* Q counter */
+.wai-q-counter {
+  text-align: center; font-size: .85rem; font-weight: 800; color: var(--text-muted);
+  background: var(--surface); border-radius: 99px; padding: 6px 16px;
+  margin-bottom: 10px; box-shadow: var(--shadow-sm);
+}
+
+/* Chat */
+.wai-chat {
+  background: var(--surface); border-radius: var(--r-lg); padding: 14px;
+  min-height: 120px; max-height: 220px; overflow-y: auto;
+  box-shadow: var(--shadow-sm); margin-bottom: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.wai-chat-empty { text-align: center; color: var(--text-muted); font-style: italic; padding: 20px 0; }
+.wai-line { padding: 7px 12px; border-radius: var(--r-sm); font-size: .9rem; font-weight: 700; max-width: 85%; }
+.wai-line--me   { background: var(--purple-l); color: var(--purple); align-self: flex-end; }
+.wai-line--them { background: var(--green-l);  color: var(--green);  align-self: flex-start; }
+.wai-line--sys  { background: var(--surface2); color: var(--text-muted); align-self: center; font-size: .8rem; font-style: italic; }
+
+/* Action boxes */
+.wai-action-box {
+  background: var(--surface); border-radius: var(--r-lg); padding: 16px;
+  box-shadow: var(--shadow-md); border: 2px solid var(--border);
+}
+
+/* Answer */
+.wai-answer-box { border-color: var(--green); }
+.wai-pending-label { font-size: 1rem; font-weight: 800; margin-bottom: 12px; color: var(--text); }
+.wai-answer-btns   { display: flex; gap: 8px; flex-wrap: wrap; }
+.wai-answer-btns .btn { flex: 1; min-width: 80px; padding: 12px 8px; font-size: .95rem; }
+
+/* Ask */
+.wai-ask-box   { border-color: var(--purple); }
+.wai-ask-label { font-size: .85rem; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px; }
+.wai-quick-qs  { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+.wai-quick-q   {
+  padding: 8px 14px; border-radius: 99px; border: 2px solid var(--border);
+  background: var(--surface2); font-size: .85rem; font-weight: 700; cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.wai-quick-q:hover { border-color: var(--purple); background: var(--purple-l); }
+.wai-custom-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.wai-custom-input {
+  flex: 1; padding: 10px 14px; border: 2px solid var(--border); border-radius: var(--r-sm);
+  font-size: .9rem; background: var(--surface2); color: var(--text); outline: none; transition: border-color .2s;
+}
+.wai-custom-input:focus { border-color: var(--purple); }
+.wai-guess-trigger { width: 100%; margin-top: 4px; }
+
+/* Waiting for partner */
+.wai-waiting-box { text-align: center; padding: 24px; border-color: var(--border); }
+.wai-waiting-anim { font-size: 2rem; animation: pulse 1.5s ease infinite; margin-bottom: 8px; }
+.wai-waiting-box p { color: var(--text-muted); font-weight: 700; }
+
+/* Guess grid */
+.wai-guess-box h3 { font-size: 1rem; font-weight: 900; margin-bottom: 12px; }
+.wai-wrong-msg    { color: var(--red); font-weight: 800; margin-bottom: 10px; font-size: .9rem; }
+.wai-guess-grid   { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+@media (max-width: 400px) { .wai-guess-grid { grid-template-columns: repeat(3, 1fr); } }
+.wai-guess-tile {
+  aspect-ratio: 1; border-radius: var(--r-md); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  border: 3px solid transparent; cursor: pointer;
+  transition: border-color .2s, transform .15s; box-shadow: var(--shadow-sm);
+}
+.wai-guess-tile:hover { border-color: var(--purple); transform: scale(1.08); }
+.wai-gt-emoji { font-size: clamp(1.4rem, 5vw, 2rem); line-height: 1; }
+.wai-gt-word  { font-size: clamp(.6rem, 2vw, .75rem); font-weight: 800; }
+
+/* Reveal cards */
+.wai-reveal-row  { display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+.wai-reveal-card { border-radius: var(--r-lg); padding: 16px 20px; min-width: 130px; text-align: center; box-shadow: var(--shadow-sm); }
+.wai-rc-label    { font-size: .75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 6px; }
+.wai-rc-emoji    { font-size: 2.8rem; line-height: 1; margin-bottom: 6px; }
+.wai-rc-name     { font-size: .9rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.wai-rc-sym      { font-size: 1rem; }

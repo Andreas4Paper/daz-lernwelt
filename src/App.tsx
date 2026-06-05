@@ -8,6 +8,7 @@ import Hearing     from './pages/Hearing';
 import Categories  from './pages/Categories';
 import Quiz        from './pages/Quiz';
 import Leaderboard from './pages/Leaderboard';
+import WhoAmI      from './pages/WhoAmI';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/categories"  element={<Categories />} />
         <Route path="/quiz"        element={<Quiz />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/who-am-i"   element={<WhoAmI />} />
         <Route path="*"            element={<Navigate to="/" replace />} />
       </Routes>
     </ProfileProvider>

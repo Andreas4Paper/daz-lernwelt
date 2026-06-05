@@ -131,6 +131,7 @@ export const GAMES: GameMeta[] = [
   { id: 'quiz',       title: 'Quiz',         desc: 'Fragen & Artikel üben',      emoji: '❓', color: '#dc2626', bg: '#fee2e2', path: '/quiz',        available: true },
   { id: 'colors',     title: 'Farben',       desc: 'Farben kennenlernen',        emoji: '🎨', color: '#0891b2', bg: '#cffafe', path: '/colors',      available: false },
   { id: 'numbers',    title: 'Zahlen',       desc: 'Zählen und rechnen',         emoji: '🔢', color: '#7c3aed', bg: '#f3e8ff', path: '/numbers',     available: false },
+  { id: 'whoami',     title: 'Wer bin ich?', desc: '2 Spieler · 2 Geräte · Früchte', emoji: '🎭', color: '#9333ea', bg: '#faf5ff', path: '/who-am-i', available: true },
 ];
 
 /* ── Word-Image rounds ───────────────────────────── */
