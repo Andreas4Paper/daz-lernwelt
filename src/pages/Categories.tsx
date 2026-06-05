@@ -2,32 +2,15 @@ import { useState } from 'react';
 import Header from '../components/Header';
 import Confetti from '../components/Confetti';
 import { useProfile } from '../context/ProfileContext';
-import { CATEGORY_SETS, getWord } from '../data';
+import { CATEGORY_SETS, getWord, artSym } from '../data';
 import type { WordItem } from '../types';
 
-interface CatZone {
-  label: string;
-  emoji: string;
-  color: string;
-  correctIds: string[];
-  placed: string[];
-}
-
-interface ItemSlot {
-  item: WordItem;
-  placed: boolean;
-}
+interface CatZone { label: string; emoji: string; color: string; correctIds: string[]; placed: string[]; }
+interface ItemSlot { item: WordItem; placed: boolean; }
 
 function buildState() {
-  const zones: CatZone[] = CATEGORY_SETS.map(cat => ({
-    ...cat,
-    correctIds: cat.items,
-    placed: [],
-  }));
-  const items: ItemSlot[] = CATEGORY_SETS.flatMap(cat =>
-    cat.items.map(id => ({ item: getWord(id), placed: false }))
-  );
-  // shuffle items
+  const zones: CatZone[] = CATEGORY_SETS.map(cat => ({ ...cat, correctIds: cat.items, placed: [] }));
+  const items: ItemSlot[] = CATEGORY_SETS.flatMap(cat => cat.items.map(id => ({ item: getWord(id), placed: false })));
   for (let i = items.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [items[i], items[j]] = [items[j], items[i]];
@@ -46,8 +29,7 @@ export default function Categories() {
 
   function onItemClick(id: string) {
     if (checked) return;
-    const item = items.find(i => i.item.id === id);
-    if (item?.placed) return;
+    if (items.find(i => i.item.id === id)?.placed) return;
     setSelected(prev => prev === id ? null : id);
   }
 
@@ -57,30 +39,21 @@ export default function Categories() {
     setSelected(null);
     setGameState(prev => ({
       items: prev.items.map(i => i.item.id === id ? { ...i, placed: true } : i),
-      zones: prev.zones.map((z, zi) =>
-        zi === zoneIdx ? { ...z, placed: [...z.placed, id] } : z
-      ),
+      zones: prev.zones.map((z, zi) => zi === zoneIdx ? { ...z, placed: [...z.placed, id] } : z),
     }));
   }
 
   function checkAnswers() {
     setChecked(true);
-    const correct = zones.reduce((sum, z) =>
-      sum + z.placed.filter(id => z.correctIds.includes(id)).length, 0
-    );
-    const pts = correct * 10;
-    addPoints(pts);
+    const correct = zones.reduce((s, z) => s + z.placed.filter(id => z.correctIds.includes(id)).length, 0);
+    addPoints(correct * 10);
     setConfetti(correct >= 8);
     markGamePlayed('categories');
-    if (correct >= 10) addPoints(30); // bonus
-  }
-
-  function isCorrectPlacement(zoneIdx: number, id: string) {
-    return zones[zoneIdx].correctIds.includes(id);
+    if (correct >= 10) addPoints(30);
   }
 
   const correctCount = checked
-    ? zones.reduce((sum, z) => sum + z.placed.filter(id => z.correctIds.includes(id)).length, 0)
+    ? zones.reduce((s, z) => s + z.placed.filter(id => z.correctIds.includes(id)).length, 0)
     : 0;
 
   return (
@@ -89,16 +62,17 @@ export default function Categories() {
       <Header title="Kategorien" emoji="📦" color="#ea580c" />
 
       <main className="game-main">
+        {/* Legend */}
+        <div className="art-legend">
+          <span>✂️ = <strong>die</strong></span>
+          <span>🪨 = <strong>der</strong></span>
+          <span>📄 = <strong>das</strong></span>
+        </div>
+
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 900, marginBottom: 4 }}>
-            📦 Sortiere die Bilder!
-          </h2>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 900, marginBottom: 4 }}>📦 Sortiere die Bilder!</h2>
           <p style={{ color: 'var(--text-muted)', fontWeight: 700 }}>
-            {checked
-              ? `${correctCount} von 12 richtig!`
-              : selected
-                ? '👆 Wähle jetzt eine Kategorie!'
-                : 'Wähle ein Bild, dann eine Kategorie.'}
+            {checked ? `${correctCount} von 12 richtig!` : selected ? '👆 Wähle jetzt eine Kategorie!' : 'Wähle ein Bild, dann eine Kategorie.'}
           </p>
         </div>
 
@@ -110,9 +84,11 @@ export default function Categories() {
                 key={item.id}
                 className={`cat-item${selected === item.id ? ' selected' : ''}`}
                 onClick={() => onItemClick(item.id)}
-                aria-label={item.word}
+                aria-label={`${item.article} ${item.word}`}
               >
                 <span>{item.emoji}</span>
+                {/* Article symbol badge on item */}
+                <span className="cat-item-art">{artSym(item.article)}</span>
                 <span>{item.word}</span>
               </button>
             ))}
@@ -135,13 +111,9 @@ export default function Categories() {
               <div className="cat-zone__items">
                 {zone.placed.map(id => {
                   const w = getWord(id);
-                  const ok = isCorrectPlacement(zi, id);
+                  const ok = zone.correctIds.includes(id);
                   return (
-                    <span
-                      key={id}
-                      className={`cat-zone-item${checked ? (ok ? ' correct' : ' wrong') : ''}`}
-                      title={w.word}
-                    >
+                    <span key={id} className={`cat-zone-item${checked ? (ok ? ' correct' : ' wrong') : ''}`} title={`${w.article} ${w.word}`}>
                       {w.emoji}
                     </span>
                   );
@@ -151,15 +123,9 @@ export default function Categories() {
           ))}
         </div>
 
-        {/* Submit / Result */}
         <div className="cats-submit">
           {!checked ? (
-            <button
-              className="btn btn--orange"
-              style={{ marginTop: 8 }}
-              onClick={checkAnswers}
-              disabled={!allPlaced}
-            >
+            <button className="btn btn--orange" style={{ marginTop: 8 }} onClick={checkAnswers} disabled={!allPlaced}>
               ✅ Prüfen!
             </button>
           ) : (

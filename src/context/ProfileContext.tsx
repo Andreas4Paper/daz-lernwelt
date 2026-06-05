@@ -2,24 +2,28 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import type { Profile } from '../types';
 import { ACHIEVEMENTS } from '../data';
 
-const DEFAULT: Profile = {
-  name: '',
-  avatar: '🦁',
-  points: 0,
-  stars: 0,
-  achievements: [],
-  gamesPlayed: {},
-};
+const DEFAULT_PROFILE = (name = '', avatar = '🦁'): Profile => ({
+  name, avatar, points: 0, stars: 0, achievements: [], gamesPlayed: {},
+});
+
+interface ProfilesStorage {
+  profiles: Profile[];
+  activeIdx: number;
+}
 
 interface Ctx {
-  profile: Profile;
+  profiles: Profile[];
+  profile: Profile;           // active profile
+  activeIdx: number;
   isSetup: boolean;
+  createProfile: (name: string, avatar: string) => void;
+  switchProfile: (idx: number) => void;
+  deleteProfile: (idx: number) => void;
   setName: (n: string) => void;
   setAvatar: (a: string) => void;
   addPoints: (pts: number) => void;
   markGamePlayed: (game: string) => void;
   unlockAchievement: (id: string) => void;
-  resetProfile: () => void;
 }
 
 const ProfileContext = createContext<Ctx | null>(null);
@@ -31,63 +35,98 @@ function starsFor(pts: number) {
   return 0;
 }
 
+const STORAGE_KEY = 'daz_profiles_v2';
+
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfile] = useState<Profile>(() => {
+  const [storage, setStorage] = useState<ProfilesStorage>(() => {
     try {
-      const raw = localStorage.getItem('daz_profile');
-      return raw ? { ...DEFAULT, ...JSON.parse(raw) } : DEFAULT;
-    } catch {
-      return DEFAULT;
-    }
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw) as ProfilesStorage;
+      // migrate old single-profile format
+      const old = localStorage.getItem('daz_profile');
+      if (old) {
+        const p = JSON.parse(old) as Profile;
+        if (p.name) return { profiles: [p], activeIdx: 0 };
+      }
+    } catch (_) { /* ignore */ }
+    return { profiles: [], activeIdx: 0 };
   });
 
   useEffect(() => {
-    localStorage.setItem('daz_profile', JSON.stringify(profile));
-  }, [profile]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(storage));
+  }, [storage]);
 
-  const isSetup = profile.name.trim().length > 0;
+  const profiles = storage.profiles;
+  const activeIdx = Math.min(storage.activeIdx, Math.max(0, profiles.length - 1));
+  const profile = profiles[activeIdx] ?? DEFAULT_PROFILE();
+  const isSetup = profiles.length > 0;
 
-  function addPoints(pts: number) {
-    setProfile(p => {
-      const newPts = p.points + pts;
-      const newStars = starsFor(newPts);
-      const achievements = [...p.achievements];
-      // point milestones
-      if (newPts >= 100 && !achievements.includes('pts_100')) achievements.push('pts_100');
-      if (newPts >= 250 && !achievements.includes('pts_250')) achievements.push('pts_250');
-      if (newPts >= 500 && !achievements.includes('pts_500')) achievements.push('pts_500');
-      return { ...p, points: newPts, stars: newStars, achievements };
+  function mutateActive(fn: (p: Profile) => Profile) {
+    setStorage(s => {
+      const ps = [...s.profiles];
+      ps[activeIdx] = fn(ps[activeIdx]);
+      return { ...s, profiles: ps };
     });
   }
 
-  function setName(name: string) { setProfile(p => ({ ...p, name })); }
-  function setAvatar(avatar: string) { setProfile(p => ({ ...p, avatar })); }
+  function addPoints(pts: number) {
+    mutateActive(p => {
+      const newPts = p.points + pts;
+      const stars = starsFor(newPts);
+      const achievements = [...p.achievements];
+      if (newPts >= 100 && !achievements.includes('pts_100')) achievements.push('pts_100');
+      if (newPts >= 250 && !achievements.includes('pts_250')) achievements.push('pts_250');
+      if (newPts >= 500 && !achievements.includes('pts_500')) achievements.push('pts_500');
+      return { ...p, points: newPts, stars, achievements };
+    });
+  }
+
+  function setName(name: string) { mutateActive(p => ({ ...p, name })); }
+  function setAvatar(avatar: string) { mutateActive(p => ({ ...p, avatar })); }
 
   function markGamePlayed(game: string) {
-    setProfile(p => {
+    mutateActive(p => {
       const gamesPlayed = { ...p.gamesPlayed, [game]: (p.gamesPlayed[game] ?? 0) + 1 };
       const achievements = [...p.achievements];
-      // first game ever
-      const totalGames = Object.values(gamesPlayed).reduce((a, b) => a + b, 0);
-      if (totalGames === 1 && !achievements.includes('first_game')) achievements.push('first_game');
-      // per-game badge
-      const gameAch = `${game}_done`;
-      if (ACHIEVEMENTS.some(a => a.id === gameAch) && !achievements.includes(gameAch))
-        achievements.push(gameAch);
+      const total = Object.values(gamesPlayed).reduce((a, b) => a + b, 0);
+      if (total === 1 && !achievements.includes('first_game')) achievements.push('first_game');
+      const ach = `${game}_done`;
+      if (ACHIEVEMENTS.some(a => a.id === ach) && !achievements.includes(ach)) achievements.push(ach);
       return { ...p, gamesPlayed, achievements };
     });
   }
 
   function unlockAchievement(id: string) {
-    setProfile(p =>
+    mutateActive(p =>
       p.achievements.includes(id) ? p : { ...p, achievements: [...p.achievements, id] }
     );
   }
 
-  function resetProfile() { setProfile(DEFAULT); }
+  function createProfile(name: string, avatar: string) {
+    setStorage(s => ({
+      profiles: [...s.profiles, DEFAULT_PROFILE(name, avatar)],
+      activeIdx: s.profiles.length, // switch to new profile
+    }));
+  }
+
+  function switchProfile(idx: number) {
+    setStorage(s => ({ ...s, activeIdx: idx }));
+  }
+
+  function deleteProfile(idx: number) {
+    setStorage(s => {
+      const ps = s.profiles.filter((_, i) => i !== idx);
+      const newIdx = Math.min(s.activeIdx, Math.max(0, ps.length - 1));
+      return { profiles: ps, activeIdx: newIdx };
+    });
+  }
 
   return (
-    <ProfileContext.Provider value={{ profile, isSetup, setName, setAvatar, addPoints, markGamePlayed, unlockAchievement, resetProfile }}>
+    <ProfileContext.Provider value={{
+      profiles, profile, activeIdx, isSetup,
+      createProfile, switchProfile, deleteProfile,
+      setName, setAvatar, addPoints, markGamePlayed, unlockAchievement,
+    }}>
       {children}
     </ProfileContext.Provider>
   );

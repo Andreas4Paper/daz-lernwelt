@@ -2,24 +2,24 @@ import { useState, useCallback } from 'react';
 import Header from '../components/Header';
 import Confetti from '../components/Confetti';
 import { useProfile } from '../context/ProfileContext';
-import { WORDS } from '../data';
+import { WORDS, artSym } from '../data';
 import type { WordItem } from '../types';
 
 function shuffle<T>(a: T[]): T[] {
-  const b = [...a]; for (let i = b.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b;
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
 }
 
-interface Round {
-  target: WordItem;
-  options: WordItem[];
-}
+interface Round { target: WordItem; options: WordItem[]; }
 
 function buildRound(prev?: WordItem): Round {
   const pool = shuffle(WORDS);
   const options = pool.slice(0, 4);
-  // make sure target is one of the options
   const target = options[Math.floor(Math.random() * 4)];
-  // avoid same target twice
   if (prev && target.id === prev.id) return buildRound(prev);
   return { target, options };
 }
@@ -27,13 +27,11 @@ function buildRound(prev?: WordItem): Round {
 let synth: SpeechSynthesis | null = null;
 try { synth = window.speechSynthesis; } catch (_) {}
 
-function speak(word: string, onEnd?: () => void) {
+function speak(text: string, onEnd?: () => void) {
   if (!synth) { onEnd?.(); return; }
   synth.cancel();
-  const utt = new SpeechSynthesisUtterance(word);
-  utt.lang = 'de-DE';
-  utt.rate = 0.85;
-  utt.pitch = 1.1;
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'de-DE'; utt.rate = 0.85; utt.pitch = 1.1;
   if (onEnd) utt.onend = onEnd;
   synth.speak(utt);
 }
@@ -42,7 +40,7 @@ export default function Hearing() {
   const { addPoints, markGamePlayed } = useProfile();
   const [round, setRound] = useState<Round>(() => buildRound());
   const [playing, setPlaying] = useState(false);
-  const [answered, setAnswered] = useState<string | null>(null); // id of chosen
+  const [answered, setAnswered] = useState<string | null>(null);
   const [score, setScore] = useState(0);
   const [count, setCount] = useState(0);
   const [confetti, setConfetti] = useState(false);
@@ -53,36 +51,27 @@ export default function Hearing() {
   function onSpeak() {
     if (playing) return;
     setPlaying(true);
-    speak(round.target.word, () => setPlaying(false));
+    // speak "der/die/das WORD" for article learning
+    const withArticle = round.target.article
+      ? `${round.target.article} ${round.target.word}`
+      : round.target.word;
+    speak(withArticle, () => setPlaying(false));
   }
 
   const nextRound = useCallback(() => {
     const next = count + 1;
-    if (next >= MAX_ROUNDS) {
-      setDone(true);
-      markGamePlayed('hearing');
-      addPoints(50);
-    } else {
-      setCount(next);
-      setRound(buildRound(round.target));
-      setAnswered(null);
-      setConfetti(false);
-      setPlaying(false);
-    }
+    if (next >= MAX_ROUNDS) { setDone(true); markGamePlayed('hearing'); addPoints(50); }
+    else { setCount(next); setRound(buildRound(round.target)); setAnswered(null); setConfetti(false); setPlaying(false); }
   }, [count, round.target, addPoints, markGamePlayed]);
 
   function onOptionClick(id: string) {
     if (answered) return;
     setAnswered(id);
-    if (id === round.target.id) {
-      addPoints(10);
-      setScore(s => s + 10);
-      setConfetti(true);
-    }
-    setTimeout(nextRound, 1600);
+    if (id === round.target.id) { addPoints(10); setScore(s => s + 10); setConfetti(true); }
+    setTimeout(nextRound, 1800);
   }
 
-  function classFor(id: string) {
+  function optClass(id: string) {
     if (!answered) return 'hear-opt';
     if (id === round.target.id) return 'hear-opt correct';
     if (id === answered) return 'hear-opt wrong';
@@ -109,6 +98,8 @@ export default function Hearing() {
     </div>
   );
 
+  const target = round.target;
+
   return (
     <div className="game-page hearing-page">
       <Confetti active={confetti} duration={1200} />
@@ -131,9 +122,9 @@ export default function Hearing() {
           <div className="hearing-hint">
             {!answered
               ? (playing ? 'Hör gut zu! 👂' : 'Tippe zum Abspielen!')
-              : answered === round.target.id
-                ? '✅ Richtig! Sehr gut!'
-                : `❌ Es war: ${round.target.word}`}
+              : answered === target.id
+                ? <span style={{ color: 'var(--green)' }}>✅ Richtig! <strong>{artSym(target.article)} {target.article} {target.word}</strong></span>
+                : <span style={{ color: 'var(--red)' }}>❌ Es war: <strong>{artSym(target.article)} {target.article} {target.word}</strong></span>}
           </div>
         </div>
 
@@ -141,13 +132,19 @@ export default function Hearing() {
           {round.options.map(opt => (
             <button
               key={opt.id}
-              className={classFor(opt.id)}
+              className={optClass(opt.id)}
               onClick={() => onOptionClick(opt.id)}
               disabled={!!answered}
               aria-label={opt.word}
             >
               <span>{opt.emoji}</span>
-              {answered && <span style={{ fontSize: '.75rem', fontWeight: 800 }}>{opt.word}</span>}
+              {/* Show article sym + word after answer */}
+              {answered && (
+                <span style={{ fontSize: '.75rem', fontWeight: 800, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                  <span>{artSym(opt.article)} {opt.article}</span>
+                  <span>{opt.word}</span>
+                </span>
+              )}
             </button>
           ))}
         </div>

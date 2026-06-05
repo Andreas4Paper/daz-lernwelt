@@ -2,20 +2,26 @@ import { useState, useCallback } from 'react';
 import Header from '../components/Header';
 import Confetti from '../components/Confetti';
 import { useProfile } from '../context/ProfileContext';
-import { WORD_IMAGE_ROUNDS, getWord } from '../data';
+import { WORD_IMAGE_ROUNDS, getWord, artSym } from '../data';
 import type { WordItem } from '../types';
 
 function shuffle<T>(a: T[]): T[] {
-  const b = [...a]; for (let i = b.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b;
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
 }
 
 interface Slot { item: WordItem; matchedWith: string | null; wrong: boolean; }
 
 function buildRound(ids: string[]): { words: Slot[]; emojis: Slot[] } {
   const items = ids.map(id => getWord(id));
-  const words  = items.map(i => ({ item: i, matchedWith: null, wrong: false }));
-  const emojis = shuffle(items).map(i => ({ item: i, matchedWith: null, wrong: false }));
-  return { words, emojis };
+  return {
+    words:  items.map(i => ({ item: i, matchedWith: null, wrong: false })),
+    emojis: shuffle(items).map(i => ({ item: i, matchedWith: null, wrong: false })),
+  };
 }
 
 export default function WordImage() {
@@ -47,41 +53,33 @@ export default function WordImage() {
     const emojiSlot = state.emojis.find(s => s.item.id === id);
     if (!emojiSlot || emojiSlot.matchedWith) return;
 
-    const isMatch = selectedWord === id;
-
-    if (isMatch) {
-      const newScore = score + 10;
-      setScore(newScore);
+    if (selectedWord === id) {
+      const ns = score + 10;
+      setScore(ns);
       addPoints(10);
       setState(prev => ({
         words:  prev.words.map(s  => s.item.id === id ? { ...s,  matchedWith: id } : s),
         emojis: prev.emojis.map(s => s.item.id === id ? { ...s, matchedWith: id } : s),
       }));
       setSelectedWord(null);
-
-      // check if round complete
-      const newMatched = state.words.filter(s => s.matchedWith || s.item.id === id).length;
-      if (newMatched === state.words.length) {
+      const nowMatched = state.words.filter(s => s.matchedWith || s.item.id === id).length;
+      if (nowMatched === state.words.length) {
         setTimeout(() => {
           setConfetti(true);
-          const isLast = roundIdx === totalRounds - 1;
-          if (isLast) { setDone(true); markGamePlayed('word-image'); addPoints(30); }
+          if (roundIdx === totalRounds - 1) { setDone(true); markGamePlayed('word-image'); addPoints(30); }
           else setTimeout(nextRound, 1200);
         }, 400);
       }
     } else {
-      // wrong — flash both red briefly
       setState(prev => ({
         words:  prev.words.map(s  => s.item.id === selectedWord ? { ...s, wrong: true } : s),
         emojis: prev.emojis.map(s => s.item.id === id ? { ...s, wrong: true } : s),
       }));
       setSelectedWord(null);
-      setTimeout(() => {
-        setState(prev => ({
-          words:  prev.words.map(s  => ({ ...s, wrong: false })),
-          emojis: prev.emojis.map(s => ({ ...s, wrong: false })),
-        }));
-      }, 700);
+      setTimeout(() => setState(prev => ({
+        words:  prev.words.map(s  => ({ ...s, wrong: false })),
+        emojis: prev.emojis.map(s => ({ ...s, wrong: false })),
+      })), 700);
     }
   }
 
@@ -98,13 +96,21 @@ export default function WordImage() {
             <div className="result-overlay__sub">Alle Runden geschafft!</div>
             <div className="result-overlay__score">+{score + 30} Punkte</div>
             <div className="result-overlay__actions">
-              <button className="btn btn--pink" onClick={() => { setRoundIdx(0); setState(buildRound(WORD_IMAGE_ROUNDS[0])); setSelectedWord(null); setDone(false); setConfetti(false); setScore(0); }}>
-                🔄 Nochmal
-              </button>
+              <button className="btn btn--pink" onClick={() => {
+                setRoundIdx(0); setState(buildRound(WORD_IMAGE_ROUNDS[0]));
+                setSelectedWord(null); setDone(false); setConfetti(false); setScore(0);
+              }}>🔄 Nochmal</button>
             </div>
           </div>
         ) : (
           <>
+            {/* Legend */}
+            <div className="art-legend">
+              <span>✂️ = <strong>die</strong></span>
+              <span>🪨 = <strong>der</strong></span>
+              <span>📄 = <strong>das</strong></span>
+            </div>
+
             <div className="round-info">
               <h2>Verbinde Wort und Bild!</h2>
               <p style={{ color: 'var(--text-muted)', fontWeight: 700 }}>
@@ -119,12 +125,11 @@ export default function WordImage() {
             </div>
 
             <p style={{ textAlign: 'center', marginBottom: 16, color: 'var(--text-muted)', fontWeight: 600 }}>
-              {selectedWord
-                ? '👆 Wähle jetzt das passende Bild!'
-                : '👆 Klicke zuerst ein Wort!'}
+              {selectedWord ? '👆 Wähle jetzt das passende Bild!' : '👆 Klicke zuerst ein Wort!'}
             </p>
 
             <div className="wordimg-board">
+              {/* Words with article symbols */}
               <div className="wordimg-col">
                 {state.words.map(s => (
                   <button
@@ -138,10 +143,13 @@ export default function WordImage() {
                     onClick={() => onWordClick(s.item.id)}
                     disabled={!!s.matchedWith}
                   >
-                    {s.matchedWith && '✅ '}{s.item.word}
+                    <span className="wi-art-sym">{artSym(s.item.article)}</span>
+                    <span className="wi-art-label">{s.item.article}</span>
+                    <span>{s.matchedWith ? '✅ ' : ''}{s.item.word}</span>
                   </button>
                 ))}
               </div>
+              {/* Emojis */}
               <div className="wordimg-col">
                 {state.emojis.map(s => (
                   <button
@@ -153,7 +161,7 @@ export default function WordImage() {
                     ].join(' ')}
                     onClick={() => onEmojiClick(s.item.id)}
                     disabled={!!s.matchedWith}
-                    aria-label={s.matchedWith ? s.item.word : 'Bild'}
+                    aria-label={s.item.word}
                   >
                     {s.item.emoji}
                   </button>

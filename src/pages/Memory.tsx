@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import Header from '../components/Header';
 import Confetti from '../components/Confetti';
 import { useProfile } from '../context/ProfileContext';
-import { WORDS } from '../data';
+import { FRUIT_MOTIFS, artSym } from '../data';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 const DIFF_CONFIG: Record<Difficulty, { pairs: number; label: string }> = {
@@ -15,6 +15,8 @@ interface Card {
   uid: number;
   emoji: string;
   word: string;
+  sym: string;   // ✂️ / 🪨 / 📄
+  art: string;   // die / der / das
   flipped: boolean;
   matched: boolean;
 }
@@ -29,9 +31,15 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function buildDeck(pairs: number): Card[] {
-  const motifs = shuffle(WORDS).slice(0, pairs);
+  const motifs = shuffle(FRUIT_MOTIFS).slice(0, pairs);
   return shuffle([...motifs, ...motifs].map((w, uid) => ({
-    uid, emoji: w.emoji, word: w.word, flipped: false, matched: false,
+    uid,
+    emoji: w.emoji,
+    word: w.word,
+    sym: artSym(w.article),
+    art: w.article ?? '',
+    flipped: false,
+    matched: false,
   })));
 }
 
@@ -54,58 +62,45 @@ export default function Memory() {
     setBusy(false); setConfetti(false); setDone(false);
   }, [diff]);
 
-  function changeDiff(d: Difficulty) {
-    setDiff(d);
-    restart(d);
-  }
+  function changeDiff(d: Difficulty) { setDiff(d); restart(d); }
 
   function onCardClick(idx: number) {
     if (busy || cards[idx].flipped || cards[idx].matched || flipped.length >= 2) return;
-
     const next = [...cards];
     next[idx] = { ...next[idx], flipped: true };
     setCards(next);
     const newFlipped = [...flipped, idx];
     setFlipped(newFlipped);
-
     if (newFlipped.length < 2) return;
 
-    // Two cards up — check
     setMoves(m => m + 1);
     setBusy(true);
     const [a, b] = newFlipped;
 
     if (next[a].word === next[b].word) {
-      // match
       setTimeout(() => {
         setCards(c => c.map((card, i) =>
           i === a || i === b ? { ...card, matched: true } : card
         ));
-        const newMatched = matched + 1;
-        setMatched(newMatched);
+        const nm = matched + 1;
+        setMatched(nm);
         addPoints(15);
         setFlipped([]);
         setBusy(false);
-        if (newMatched === totalPairs) {
-          setDone(true);
-          setConfetti(true);
-          markGamePlayed('memory');
-          addPoints(50); // bonus
+        if (nm === totalPairs) {
+          setDone(true); setConfetti(true);
+          markGamePlayed('memory'); addPoints(50);
         }
       }, 300);
     } else {
-      // no match
       setTimeout(() => {
         setCards(c => c.map((card, i) =>
           i === a || i === b ? { ...card, flipped: false } : card
         ));
-        setFlipped([]);
-        setBusy(false);
+        setFlipped([]); setBusy(false);
       }, 1000);
     }
   }
-
-  const gridClass = `memory-grid memory-grid--${diff}`;
 
   return (
     <div className="game-page memory-page">
@@ -113,6 +108,13 @@ export default function Memory() {
       <Header title="Memory" emoji="🧠" color="#7c3aed" />
 
       <main className="game-main">
+        {/* Legend */}
+        <div className="art-legend">
+          <span>✂️ = <strong>die</strong></span>
+          <span>🪨 = <strong>der</strong></span>
+          <span>📄 = <strong>das</strong></span>
+        </div>
+
         {done ? (
           <div className="result-overlay anim-bounce">
             <span className="result-overlay__trophy">🏆</span>
@@ -121,24 +123,20 @@ export default function Memory() {
             <div className="result-overlay__score">+{totalPairs * 15 + 50} Punkte</div>
             <div className="result-overlay__actions">
               <button className="btn btn--purple" onClick={() => restart()}>🔄 Nochmal</button>
-              <button className="btn btn--ghost"  onClick={() => changeDiff('easy')}>🏠 Menü</button>
             </div>
           </div>
         ) : (
           <>
-            {/* Difficulty */}
             <div className="diff-pills">
               {(Object.keys(DIFF_CONFIG) as Difficulty[]).map(d => (
                 <button key={d}
                   className={`diff-pill${diff === d ? ' active' : ''}`}
-                  onClick={() => changeDiff(d)}
-                >
+                  onClick={() => changeDiff(d)}>
                   {DIFF_CONFIG[d].label} ({DIFF_CONFIG[d].pairs * 2})
                 </button>
               ))}
             </div>
 
-            {/* Stats */}
             <div className="memory-info">
               <div className="memory-stat">
                 <div className="memory-stat__val">{matched}</div>
@@ -154,21 +152,22 @@ export default function Memory() {
               </div>
             </div>
 
-            {/* Cards */}
-            <div className={gridClass}>
+            <div className={`memory-grid memory-grid--${diff}`}>
               {cards.map((card, idx) => (
                 <div
                   key={card.uid}
                   className={`mcard${card.flipped ? ' flipped' : ''}${card.matched ? ' matched' : ''}`}
                   onClick={() => onCardClick(idx)}
                   role="button"
-                  aria-label={card.matched || card.flipped ? card.word : 'Verdeckte Karte'}
+                  aria-label={card.matched || card.flipped ? `${card.art} ${card.word}` : 'Verdeckte Karte'}
                 >
                   <div className="mcard-inner">
                     <div className="mcard-face mcard-back" />
                     <div className="mcard-face mcard-front">
                       <span className="mcard-front__emoji">{card.emoji}</span>
                       <span className="mcard-front__word">{card.word}</span>
+                      {/* Article symbol badge — bottom-right */}
+                      <span className="mcard-art-sym" title={card.art}>{card.sym}</span>
                     </div>
                   </div>
                 </div>

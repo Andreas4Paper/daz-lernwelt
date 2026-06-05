@@ -211,6 +211,17 @@ img, svg { max-width: 100%; }
 .ach-badge__label { font-size: .7rem; font-weight: 700; text-align: center; color: var(--text-muted); }
 
 /* ======================================================
+   ARTIKEL LEGEND (shared across games)
+   ====================================================== */
+.art-legend {
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  background: var(--surface); border-radius: var(--r-sm); padding: 8px 16px;
+  font-size: .85rem; font-weight: 700; margin-bottom: 16px;
+  box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+}
+.art-legend span { display: flex; align-items: center; gap: 4px; }
+
+/* ======================================================
    MEMORY GAME
    ====================================================== */
 .memory-page .game-main { max-width: 780px; }
@@ -240,6 +251,13 @@ img, svg { max-width: 100%; }
 .mcard-front { background:var(--surface); border:2px solid var(--border); transform:rotateY(180deg); padding: 6px; }
 .mcard-front__emoji { font-size: clamp(1.2rem, 4vw, 2.5rem); line-height:1; }
 .mcard-front__word  { font-size: clamp(.6rem, 2vw, .85rem); font-weight:800; color:var(--text); text-align:center; line-height:1.2; }
+/* Article symbol badge — bottom-right of card front */
+.mcard-art-sym {
+  position: absolute; bottom: 4px; right: 5px;
+  font-size: clamp(.6rem, 2vw, .85rem); line-height: 1;
+  background: rgba(255,255,255,.8); border-radius: 4px; padding: 1px 3px;
+  pointer-events: none;
+}
 .mcard.matched .mcard-front { background: linear-gradient(135deg, #dcfce7, #bbf7d0); border-color:transparent; }
 .mcard:not(.flipped):not(.matched):hover .mcard-inner { transform:rotateY(12deg) scale(1.04); }
 @keyframes mcard-pop { 0%{transform:rotateY(180deg) scale(1)} 40%{transform:rotateY(180deg) scale(1.15)} 100%{transform:rotateY(180deg) scale(1)} }
@@ -405,3 +423,107 @@ img, svg { max-width: 100%; }
   .quiz-options { gap:8px; }
   .hearing-options { gap:10px; }
 }
+
+/* ======================================================
+   WORD-IMAGE — article display
+   ====================================================== */
+.wi-word { flex-direction: column; gap: 3px; position: relative; }
+.wi-art-sym   { font-size: 1rem; line-height: 1; }
+.wi-art-label { font-size: .7rem; font-weight: 900; color: var(--text-muted); letter-spacing: .5px; }
+
+/* ======================================================
+   LETTERS — article hint
+   ====================================================== */
+.letters-art-hint {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--purple-l); border-radius: 99px;
+  padding: 5px 14px; font-size: 1rem; font-weight: 800;
+  margin-bottom: 10px;
+}
+.letters-art-sym   { font-size: 1.2rem; }
+.letters-art-label { color: var(--purple); font-size: .9rem; }
+
+/* ======================================================
+   CATEGORIES — article badge on items
+   ====================================================== */
+.cat-item-art { font-size: .8rem; line-height: 1; }
+
+/* ======================================================
+   LEADERBOARD PAGE
+   ====================================================== */
+.lb-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+.lb-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border-radius: var(--r-md);
+  padding: 14px 16px; box-shadow: var(--shadow-sm);
+  border: 3px solid transparent; cursor: pointer;
+  transition: border-color .2s, transform .15s;
+}
+.lb-row:hover { border-color: var(--purple); transform: translateY(-2px); }
+.lb-row--active { border-color: var(--purple); background: var(--purple-l); }
+
+.lb-medal  { font-size: 1.6rem; width: 36px; text-align: center; flex-shrink: 0; }
+.lb-avatar { font-size: 2rem; flex-shrink: 0; }
+.lb-info   { flex: 1; min-width: 0; }
+.lb-name   { font-size: 1rem; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+.lb-you-badge {
+  background: var(--purple); color: #fff; font-size: .65rem;
+  padding: 2px 8px; border-radius: 99px; font-weight: 800;
+}
+.lb-stars  { display: flex; align-items: center; gap: 3px; font-size: .9rem; margin-top: 2px; }
+.lb-games  { font-size: .75rem; color: var(--text-muted); margin-left: 6px; }
+.lb-points { text-align: right; flex-shrink: 0; }
+.lb-pts-num { font-size: 1.5rem; font-weight: 900; color: var(--purple); display: block; }
+.lb-pts-lbl { font-size: .7rem; color: var(--text-muted); }
+.lb-delete  {
+  background: none; border: 2px solid var(--border); border-radius: 8px;
+  width: 28px; height: 28px; font-size: .8rem; color: var(--text-muted);
+  flex-shrink: 0; transition: background .2s, color .2s;
+}
+.lb-delete:hover { background: var(--red-l); color: var(--red); border-color: var(--red); }
+
+.lb-new-form {
+  background: var(--surface); border-radius: var(--r-lg);
+  padding: 24px; box-shadow: var(--shadow-md); margin-top: 16px;
+}
+.lb-new-form h3 { font-size: 1.1rem; font-weight: 900; margin-bottom: 16px; }
+
+/* ======================================================
+   HOME — mini leaderboard + profile switcher
+   ====================================================== */
+.mini-lb { display: flex; flex-direction: column; gap: 8px; }
+.mini-lb-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; background: var(--surface); border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm); cursor: pointer; border: 2px solid transparent;
+  transition: border-color .2s, transform .15s;
+}
+.mini-lb-row:hover { border-color: var(--purple); transform: translateX(4px); }
+.mini-lb-row--me   { border-color: var(--purple); background: var(--purple-l); }
+.mini-lb-medal  { font-size: 1.4rem; width: 28px; text-align: center; }
+.mini-lb-avatar { font-size: 1.6rem; }
+.mini-lb-name   { flex: 1; font-weight: 800; font-size: .95rem; }
+.mini-lb-pts    { font-weight: 900; color: var(--purple); font-size: 1rem; }
+
+.mini-lb-empty {
+  text-align: center; padding: 24px; background: var(--surface);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+}
+.mini-lb-empty p { color: var(--text-muted); margin-bottom: 12px; font-weight: 700; }
+
+/* Profile switcher */
+.profile-switcher { display: flex; gap: 10px; flex-wrap: wrap; }
+.profile-switch-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: var(--surface); border-radius: var(--r-md);
+  padding: 14px 16px; min-width: 90px;
+  border: 3px solid var(--border); cursor: pointer;
+  transition: border-color .2s, transform .15s; box-shadow: var(--shadow-sm);
+}
+.profile-switch-btn:hover { border-color: var(--purple); transform: translateY(-2px); }
+.profile-switch-btn.active { border-color: var(--purple); background: var(--purple-l); }
+.profile-switch-btn--add   { border-style: dashed; color: var(--text-muted); }
+.psb-avatar { font-size: 1.8rem; }
+.psb-name   { font-size: .85rem; font-weight: 800; }
+.psb-pts    { font-size: .75rem; color: var(--text-muted); }
